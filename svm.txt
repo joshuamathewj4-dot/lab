@@ -1,0 +1,128 @@
+
+# SVM Classification
+
+# 1. Import libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score,
+    f1_score, classification_report, confusion_matrix
+)
+
+# 2. Load dataset
+data = load_breast_cancer()
+df = pd.DataFrame(data.data, columns=data.feature_names)
+df["target"] = data.target
+
+# 3. Display dataset details
+print("First 5 records:\n", df.head())
+print("\nShape:", df.shape)
+print("\nDataset Information:")
+df.info()
+print("\nStatistical Summary:\n", df.describe())
+print("\nMissing Values:\n", df.isnull().sum())
+print("\nDuplicate Count:", df.duplicated().sum())
+
+# 4. Separate features and target
+X = df.drop("target", axis=1)
+y = df["target"]
+
+print("\nClasses:", data.target_names)
+
+# 5. Select two features for visualization
+features = ["mean radius", "mean texture"]
+X2 = df[features]
+
+# 6. Split dataset (80:20)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# 7. Standardize all features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# 8. Create and train SVM classifier
+model = SVC(kernel="linear", C=1.0)
+model.fit(X_train, y_train)
+
+# 9. Predict test data
+y_pred = model.predict(X_test)
+
+# 10. Evaluation metrics
+print("\nAccuracy:", accuracy_score(y_test, y_pred))
+print("Precision:", precision_score(y_test, y_pred))
+print("Recall:", recall_score(y_test, y_pred))
+print("F1 Score:", f1_score(y_test, y_pred))
+
+print("\nClassification Report:\n",
+      classification_report(y_test, y_pred,
+                            target_names=data.target_names))
+
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+# 11. Separate SVM using only two features
+X2_train, X2_test, y2_train, y2_test = train_test_split(
+    X2, y, test_size=0.2, random_state=42, stratify=y
+)
+
+scaler2 = StandardScaler()
+X2_train = scaler2.fit_transform(X2_train)
+X2_test = scaler2.transform(X2_test)
+
+svm2 = SVC(kernel="linear", C=1.0)
+svm2.fit(X2_train, y2_train)
+
+# 12. Hyperplane coefficients and intercept
+w = svm2.coef_[0]
+b = svm2.intercept_[0]
+
+print("\nCoefficients:", w)
+print("Intercept:", b)
+
+# 13. Plot classes, hyperplane and margins
+plt.figure(figsize=(9, 6))
+
+plt.scatter(X2_train[y2_train == 0, 0],
+            X2_train[y2_train == 0, 1],
+            label="Malignant (0)")
+
+plt.scatter(X2_train[y2_train == 1, 0],
+            X2_train[y2_train == 1, 1],
+            label="Benign (1)")
+
+# Hyperplane: w1*x1 + w2*x2 + b = 0
+x_axis = np.linspace(X2_train[:, 0].min() - 1,
+                     X2_train[:, 0].max() + 1, 200)
+
+y_axis = -(w[0] * x_axis + b) / w[1]
+plt.plot(x_axis, y_axis, "k-", label="Hyperplane")
+
+# Margins: w1*x1 + w2*x2 + b = +1 and -1
+upper = -(w[0] * x_axis + b - 1) / w[1]
+lower = -(w[0] * x_axis + b + 1) / w[1]
+
+plt.plot(x_axis, upper, "r--", label="Margin +1")
+plt.plot(x_axis, lower, "b--", label="Margin -1")
+
+# Support vectors
+plt.scatter(svm2.support_vectors_[:, 0],
+            svm2.support_vectors_[:, 1],
+            s=120, facecolors="none", edgecolors="black",
+            label="Support Vectors")
+
+plt.xlabel("Mean Radius (standardized)")
+plt.ylabel("Mean Texture (standardized)")
+plt.title("Linear SVM Classification")
+plt.legend()
+plt.grid()
+plt.show()
+
+print("\nConclusion: SVM classification completed.")

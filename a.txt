@@ -1,0 +1,67 @@
+
+# A* Search Algorithm
+
+from queue import PriorityQueue
+
+# Weighted graph
+graph = {
+    'A': [('B', 1), ('C', 4)],
+    'B': [('D', 2), ('E', 5)],
+    'C': [('E', 1)],
+    'D': [('G', 5)],
+    'E': [('G', 2)],
+    'G': []
+}
+
+# Heuristic values
+h = {
+    'A': 7,
+    'B': 6,
+    'C': 4,
+    'D': 4,
+    'E': 2,
+    'G': 0
+}
+
+def astar(start, goal):
+    pq = PriorityQueue()
+    pq.put((h[start], 0, start))
+
+    cost = {start: 0}
+    parent = {start: None}
+
+    while not pq.empty():
+        f, g, current = pq.get()
+
+        # Ignore outdated entries
+        if g > cost[current]:
+            continue
+
+        # Goal reached
+        if current == goal:
+            path = []
+            node = goal
+
+            while node is not None:
+                path.append(node)
+                node = parent[node]
+
+            path.reverse()
+            print("Shortest Path:", path)
+            print("Total Cost:", cost[goal])
+            return
+
+        # Explore neighbours
+        for neighbour, weight in graph[current]:
+            new_cost = g + weight
+
+            if neighbour not in cost or new_cost < cost[neighbour]:
+                cost[neighbour] = new_cost
+                parent[neighbour] = current
+                new_f = new_cost + h[neighbour]
+                pq.put((new_f, new_cost, neighbour))
+
+    print("No path found.")
+
+# Run algorithm
+astar('A', 'G')

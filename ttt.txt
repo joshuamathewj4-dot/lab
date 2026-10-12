@@ -1,0 +1,117 @@
+
+# Tic-Tac-Toe using Minimax Algorithm
+
+# Initialize board
+board = [" "] * 9
+
+# Display board
+def display():
+    print()
+    for i in range(0, 9, 3):
+        print(board[i], "|", board[i+1], "|", board[i+2])
+        if i < 6:
+            print("--+---+--")
+    print()
+
+# Check winner
+def winner(player):
+    wins = [
+        (0,1,2), (3,4,5), (6,7,8),
+        (0,3,6), (1,4,7), (2,5,8),
+        (0,4,8), (2,4,6)
+    ]
+    for a, b, c in wins:
+        if board[a] == board[b] == board[c] == player:
+            return True
+    return False
+
+# Minimax algorithm
+def minimax(is_max):
+    if winner("O"):
+        return 1
+    if winner("X"):
+        return -1
+    if " " not in board:
+        return 0
+
+    if is_max:
+        best = -float("inf")
+        for i in range(9):
+            if board[i] == " ":
+                board[i] = "O"
+                score = minimax(False)
+                board[i] = " "
+                best = max(best, score)
+        return best
+
+    else:
+        best = float("inf")
+        for i in range(9):
+            if board[i] == " ":
+                board[i] = "X"
+                score = minimax(True)
+                board[i] = " "
+                best = min(best, score)
+        return best
+
+# Find computer's best move
+def computer_move():
+    best_score = -float("inf")
+    move = -1
+
+    for i in range(9):
+        if board[i] == " ":
+            board[i] = "O"
+            score = minimax(False)
+            board[i] = " "
+
+            if score > best_score:
+                best_score = score
+                move = i
+
+    board[move] = "O"
+
+# Main game
+print("Positions:")
+print("1 | 2 | 3")
+print("--+---+--")
+print("4 | 5 | 6")
+print("--+---+--")
+print("7 | 8 | 9")
+
+while True:
+    # Human move
+    try:
+        pos = int(input("Enter position (1-9): ")) - 1
+    except ValueError:
+        print("Enter a valid number!")
+        continue
+
+    if pos < 0 or pos > 8 or board[pos] != " ":
+        print("Invalid move! Try again.")
+        continue
+
+    board[pos] = "X"
+    display()
+
+    if winner("X"):
+        print("Human Wins!")
+        break
+
+    if " " not in board:
+        print("Match Draw!")
+        break
+
+    # Computer move
+    computer_move()
+    print("Computer's move:")
+    display()
+
+    if winner("O"):
+        print("Computer Wins!")
+        break
+
+    if " " not in board:
+        print("Match Draw!")
+        break
+
